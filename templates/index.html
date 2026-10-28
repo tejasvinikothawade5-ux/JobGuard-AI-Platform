@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobGuard AI — Fake Job Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+{% include "_nav.html" %}
+<p class="brand-tag page-tagline">NLP-powered fake job posting detector</p>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Know before <br>you apply.</h1>
+      <p class="hero-sub">Paste a job listing's details below. JobGuard AI reads the description, requirements and application link the way a scam does — then tells you exactly what it noticed, how risky the listing is, and whether it's safe to apply.</p>
+      <div class="examples">
+        <span class="examples-label">Try a sample</span>
+        <button type="button" class="chip chip-danger" data-example="fake">Suspicious listing</button>
+        <button type="button" class="chip chip-safe" data-example="real">Genuine listing</button>
+      </div>
+    </div>
+
+    <form id="analyzer-form" class="analyzer" autocomplete="off">
+      <div class="field-row">
+        <div class="field">
+          <label for="title">Job title</label>
+          <input type="text" id="title" name="title" placeholder="e.g. Data Entry Operator (Work From Home)">
+        </div>
+        <div class="field">
+          <label for="company">Company name</label>
+          <input type="text" id="company" name="company" placeholder="e.g. Bright Future Careers">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="url">Job posting / application URL</label>
+        <input type="text" id="url" name="url" placeholder="https://company-careers.example.com/apply">
+      </div>
+
+      <div class="field">
+        <label for="description">Job description <span class="req">required</span></label>
+        <textarea id="description" name="description" rows="6" placeholder="Paste the full job description here..."></textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="requirements">Requirements <span class="opt">optional</span></label>
+          <textarea id="requirements" name="requirements" rows="3" placeholder="e.g. Bachelor's degree, 2+ years experience..."></textarea>
+        </div>
+        <div class="field">
+          <label for="company_profile">Company profile <span class="opt">optional</span></label>
+          <textarea id="company_profile" name="company_profile" rows="3" placeholder="About the company, if mentioned in the post..."></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="scan-btn">
+        <span>Analyze listing</span>
+      </button>
+      <p id="form-error" class="form-error" hidden></p>
+    </form>
+  </section>
+
+  <section id="results" class="results" hidden>
+    <div class="results-grid">
+
+      <div class="verdict-card">
+        <div class="gauge-wrap">
+          <svg class="gauge" viewBox="0 0 160 160">
+            <circle class="gauge-track" cx="80" cy="80" r="70"/>
+            <circle id="gauge-fill" class="gauge-fill" cx="80" cy="80" r="70"/>
+          </svg>
+          <div class="gauge-center">
+            <span id="risk-score">0</span>
+            <small>risk score</small>
+          </div>
+        </div>
+        <div class="verdict-text">
+          <span id="risk-level-badge" class="risk-badge">—</span>
+          <h2 id="verdict-title">—</h2>
+          <p id="verdict-advice">—</p>
+        </div>
+      </div>
+
+      <div class="prob-card">
+        <h3>Model confidence</h3>
+        <div class="prob-row">
+          <span>Fraudulent</span>
+          <div class="prob-bar"><div id="prob-fraud-bar" class="prob-fill prob-fraud"></div></div>
+          <span id="prob-fraud-val">0%</span>
+        </div>
+        <div class="prob-row">
+          <span>Genuine</span>
+          <div class="prob-bar"><div id="prob-genuine-bar" class="prob-fill prob-genuine"></div></div>
+          <span id="prob-genuine-val">0%</span>
+        </div>
+        <p class="prob-note">Based on TF-IDF text analysis + engineered red-flag signals from the description and URL, scored by a trained Random Forest classifier.</p>
+      </div>
+
+      <div class="flags-card">
+        <h3>Why JobGuard flagged this</h3>
+        <ul id="flags-list" class="flags-list"></ul>
+        <p id="flags-empty" class="flags-empty" hidden>No notable red flags detected in the text or link patterns.</p>
+      </div>
+
+      <div class="history-bar" id="history-bar" hidden>
+        <span id="history-msg" class="history-msg"></span>
+        <div class="history-actions" id="history-actions">
+          <button type="button" class="mini-btn" data-status="saved">☆ Save</button>
+          <button type="button" class="mini-btn mini-primary" data-status="applied">✓ I applied</button>
+          <button type="button" class="mini-btn" data-status="skipped">Skip</button>
+          <a href="{{ url_for('history') }}" class="mini-link">View history →</a>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <button type="button" id="tech-toggle" class="tech-toggle">Show technical feature readout</button>
+        <pre id="tech-readout" class="tech-readout" hidden></pre>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>JobGuard AI is a machine-learning assistant, not a legal verdict. Always independently verify a company before sharing personal information or money. <span id="model-meta"></span></p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

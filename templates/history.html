@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My History — JobGuard AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% include "_nav.html" %}
+
+<main class="page-main">
+  <div class="page-head">
+    <h1>My history</h1>
+    <p class="hero-sub">Every listing you analyze or save is kept here, with its risk score, so you can track what you applied to. Listings you analyze while logged in are added automatically.</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><strong>{{ stats.total }}</strong><span>Checked</span></div>
+    <div class="stat"><strong>{{ stats.applied }}</strong><span>Applied</span></div>
+    <div class="stat"><strong>{{ stats.flagged }}</strong><span>High-risk found</span></div>
+    <div class="stat"><strong>{{ stats.avoided }}</strong><span>Risky ones avoided</span></div>
+  </div>
+
+  <form method="GET" class="filter-row">
+    <div class="tabs">
+      <a href="{{ url_for('history', q=query or None) }}" class="tab {{ 'active' if not active_status else '' }}">All</a>
+      {% for key, label in history_statuses %}
+        <a href="{{ url_for('history', status=key, q=query or None) }}" class="tab {{ 'active' if active_status == key else '' }}">{{ label }}{% if counts.get(key) %} ({{ counts[key] }}){% endif %}</a>
+      {% endfor %}
+    </div>
+    <div class="search-box">
+      {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}">{% endif %}
+      <input type="search" name="q" value="{{ query }}" maxlength="100" placeholder="Search title or company">
+      <button type="submit" class="mini-btn">Search</button>
+    </div>
+  </form>
+
+  {% if items|length == 0 %}
+    <div class="empty-state">
+      <p>{% if active_status or query %}Nothing matches this filter.{% else %}No history yet. Analyze a job listing or save a recommended job and it will show up here.{% endif %}</p>
+      <a href="{{ url_for('index') }}" class="scan-btn"><span>Analyze a job</span></a>
+    </div>
+  {% else %}
+    <div class="history-list">
+      {% for it in items %}
+        <article class="history-item" id="item-{{ it.id }}">
+          <div class="history-top">
+            <div>
+              <h3>{{ it.title or 'Untitled listing' }}</h3>
+              <p class="job-meta">{{ it.company or 'Company not given' }}{% if it.host %} · {{ it.host }}{% endif %} · checked {{ it.checked_on }}{% if it.applied_on %} · applied {{ it.applied_on }}{% endif %}</p>
+            </div>
+            <div class="history-badges">
+              <span class="risk-pill risk-{{ it.risk_class }}">{{ it.risk_score }} · {{ it.risk_level }}</span>
+              <span class="status-badge st-{{ it.status }}">{{ it.status_label }}</span>
+            </div>
+          </div>
+          <p class="history-verdict">{{ it.verdict }}</p>
+          {% if it.flags %}
+            <details class="history-flags">
+              <summary>{{ it.flags|length }} red flag{{ 's' if it.flags|length != 1 else '' }}</summary>
+              <ul class="flags-list">
+                {% for f in it.flags %}<li><span class="flag-dot {{ f.severity }}"></span><span>{{ f.message }}</span></li>{% endfor %}
+              </ul>
+            </details>
+          {% endif %}
+          <form method="POST" action="{{ url_for('history_update', history_id=it.id) }}" class="history-edit">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" aria-label="Status">
+              {% for key, label in history_statuses %}<option value="{{ key }}" {{ 'selected' if key == it.status else '' }}>{{ label }}</option>{% endfor %}
+            </select>
+            <input type="text" name="notes" value="{{ it.notes or '' }}" maxlength="1000" placeholder="Notes (recruiter, date, follow-up...)" aria-label="Notes">
+            <button type="submit" class="mini-btn mini-primary">Update</button>
+          </form>
+          <form method="POST" action="{{ url_for('history_delete', history_id=it.id) }}" class="history-delete">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="mini-link danger-link">Remove</button>
+          </form>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+</main>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

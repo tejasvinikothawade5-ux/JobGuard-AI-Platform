@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up — JobGuard AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% include "_nav.html" %}
+
+<main class="auth-main">
+  <div class="auth-card">
+    <h1>Create your account</h1>
+    <p class="auth-sub">Save your profile so JobGuard AI can recommend jobs that actually fit you — and screen them for fraud before you ever see them.</p>
+
+    <form method="POST" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" required autofocus>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" minlength="8" maxlength="128" required autocomplete="new-password">
+        <span class="field-hint">At least 8 characters, with a letter and a number</span>
+      </div>
+      <button type="submit" class="scan-btn">Create account</button>
+    </form>
+
+    <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+  </div>
+</main>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

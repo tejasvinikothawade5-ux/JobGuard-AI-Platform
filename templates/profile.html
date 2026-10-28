@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — JobGuard AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% include "_nav.html" %}
+
+<main class="page-main">
+  <div class="page-head">
+    <h1>My profile</h1>
+    <p class="hero-sub">Tell JobGuard AI what you know and what you're looking for. Your <a href="{{ url_for('recommendations') }}">recommended jobs</a> are matched straight from this.</p>
+  </div>
+
+  <form method="POST" class="analyzer profile-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="skills">Skills <span class="opt">comma-separated</span></label>
+      <textarea id="skills" name="skills" rows="3" placeholder="e.g. python, sql, data analysis, excel">{{ profile.skills if profile else '' }}</textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="preferred_role">Preferred role</label>
+        <input type="text" id="preferred_role" name="preferred_role" placeholder="e.g. Data Analyst" value="{{ profile.preferred_role if profile else '' }}">
+      </div>
+      <div class="field">
+        <label for="experience_years">Years of experience</label>
+        <input type="text" id="experience_years" name="experience_years" inputmode="numeric" placeholder="e.g. 2" value="{{ profile.experience_years if profile else 0 }}">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="preferred_location">Preferred location</label>
+      <input type="text" id="preferred_location" name="preferred_location" placeholder="e.g. Bengaluru, or Remote" value="{{ profile.preferred_location if profile else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="bio">Short bio <span class="opt">optional</span></label>
+      <textarea id="bio" name="bio" rows="3" placeholder="A couple of lines about your background and goals">{{ profile.bio if profile else '' }}</textarea>
+    </div>
+
+    <button type="submit" class="scan-btn"><span>Save profile</span></button>
+  </form>
+
+  <form method="POST" action="{{ url_for('change_password') }}" id="security" class="analyzer profile-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2 class="section-title">Security · change password</h2>
+    <div class="field">
+      <label for="current_password">Current password</label>
+      <input type="password" id="current_password" name="current_password" required autocomplete="current-password">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="new_password">New password</label>
+        <input type="password" id="new_password" name="new_password" minlength="8" maxlength="128" required autocomplete="new-password">
+        <span class="field-hint">At least 8 characters, with a letter and a number</span>
+      </div>
+      <div class="field">
+        <label for="confirm_password">Confirm new password</label>
+        <input type="password" id="confirm_password" name="confirm_password" minlength="8" maxlength="128" required autocomplete="new-password">
+      </div>
+    </div>
+    <p class="field-hint">Changing your password logs you out of every other device.</p>
+    <button type="submit" class="scan-btn"><span>Change password</span></button>
+  </form>
+</main>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

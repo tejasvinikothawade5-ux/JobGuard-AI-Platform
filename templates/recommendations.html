@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recommended Jobs — JobGuard AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% include "_nav.html" %}
+
+<main class="page-main">
+  <div class="page-head">
+    <h1>Recommended for you</h1>
+    <p class="hero-sub">Matched to your <a href="{{ url_for('profile') }}">profile</a> and pre-screened through the same fraud model used on the Analyze page.</p>
+  </div>
+
+  {% if not has_profile %}
+    <div class="empty-state">
+      <p>Your profile doesn't have any skills or a preferred role yet, so there's nothing to match against.</p>
+      <a href="{{ url_for('profile') }}" class="scan-btn"><span>Complete your profile</span></a>
+    </div>
+  {% elif jobs|length == 0 %}
+    <div class="empty-state">
+      <p>No strong matches found for your current profile{% if screened_out %}, and {{ screened_out }} listing(s) were excluded for fraud risk{% endif %}. Try adding more skills or broadening your preferred role.</p>
+      <a href="{{ url_for('profile') }}" class="scan-btn"><span>Update your profile</span></a>
+    </div>
+  {% else %}
+    {% if screened_out %}
+      <p class="screened-note">🛡 {{ screened_out }} matching listing{{ 's' if screened_out != 1 else '' }} were automatically excluded for showing signs of fraud.</p>
+    {% endif %}
+
+    <div class="job-grid">
+      {% for job in jobs %}
+        <div class="job-card">
+          <div class="job-card-top">
+            <span class="match-pill">{{ job.match_score }}% match</span>
+            <span class="risk-pill risk-{{ 'low' if job.risk_score < 40 else 'medium' }}">✓ Screened · {{ job.risk_level }}</span>
+          </div>
+          <h3>{{ job.title }}</h3>
+          <p class="job-meta">{{ job.company }} · {{ job.location }}</p>
+          <p class="job-skills">{{ job.skills }}</p>
+          <p class="job-desc">{{ job.description[:180] }}{% if job.description|length > 180 %}…{% endif %}</p>
+          <a href="{{ url_for('index') }}" class="job-verify-link">Run full analysis on this listing →</a>
+          <form method="POST" action="{{ url_for('history_from_recommendation') }}" class="job-actions">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="title" value="{{ job.title }}">
+            <input type="hidden" name="company" value="{{ job.company }}">
+            {% if job.status_label %}<span class="status-badge st-{{ job.status }}">{{ job.status_label }}</span>{% endif %}
+            {% if job.status != 'saved' and job.status != 'applied' %}
+              <button type="submit" name="action" value="saved" class="mini-btn">☆ Save</button>
+            {% endif %}
+            {% if job.status != 'applied' %}
+              <button type="submit" name="action" value="applied" class="mini-btn mini-primary">✓ I applied</button>
+            {% endif %}
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</main>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.env
+.secret_key
+jobguard.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
