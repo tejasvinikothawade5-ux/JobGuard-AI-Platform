@@ -47,33 +47,42 @@ def load_dotenv(path):
             if key and key not in os.environ:
                 os.environ[key] = value
 
-
 def load_secret_key(base_dir):
     """
-    Order of preference:
-      1. JOBGUARD_SECRET_KEY environment variable / .env (use this in production)
-      2. a random key generated once and saved to .secret_key (git-ignored)
-    There is deliberately NO hard-coded fallback: a published default key lets anyone
-    forge login cookies.
+    Load the secret key from the environment in production.
+    For local development, reuse or create .secret_key.
     """
-    env_key = os.environ.get("JOBGUARD_SECRET_KEY", "")
-    if len(env_key) >= 16:
+    env_key = os.environ.get("JOBGUARD_SECRET_KEY", "").strip()
+
+    if len(env_key) >= 32:
         return env_key
 
+    # Vercel's application directory is read-only.
+    if os.environ.get("VERCEL"):
+        raise RuntimeError(
+            "Missing or invalid JOBGUARD_SECRET_KEY environment variable."
+        )
+
+    # Local development only.
     path = os.path.join(base_dir, ".secret_key")
+
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as fh:
             existing = fh.read().strip()
+
         if len(existing) >= 32:
             return existing
 
     new_key = secrets.token_hex(32)
+
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(new_key)
+
     try:
-        os.chmod(path, 0o600)  # owner-only (ignored on Windows)
+        os.chmod(path, 0o600)
     except OSError:
         pass
+
     return new_key
 
 
